@@ -1,0 +1,32 @@
+name: Publish clean MYTVOnline3 download
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-clean-release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and verify APK
+        shell: bash
+        run: |
+          curl --fail --location --retry 3             --output MYTVOnline3.apk             "https://github.com/sdigital762-pixel/mytvonline3-risk-reduced-test/releases/download/v12.1.33-risk-reduced-1/MYTVOnline3-risk-reduced-1.apk"
+          echo "14B10F48FDA9E1B2D29B5A98E064BAF84E9647B698A9BDDF5E21C096F0772611  MYTVOnline3.apk" | sha256sum --check -
+
+      - name: Publish clean direct-download release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh release view v12.1.33 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload v12.1.33 MYTVOnline3.apk --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create v12.1.33 MYTVOnline3.apk               --target main               --title "MYTVOnline3 12.1.33"               --notes "Direct AmsterdamClick test download. Unofficial modified build; test only on a compatible device."               --repo "$GITHUB_REPOSITORY"
+          fi
